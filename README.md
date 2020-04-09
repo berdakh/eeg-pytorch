@@ -7,7 +7,7 @@ In particular, on can perform CNN model selection for decoding EEG motor-imagery
 This repo was created to help students to get started with EEG + Deep learning research. 
 
 Required packages:
-1) pip install -U mne
+1) pip install mne==0.18.0 
 2) conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 3) pip install braindecode
 
