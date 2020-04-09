@@ -7,20 +7,22 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin 
 from sklearn.model_selection import train_test_split
 
-#%%%%%%%%% 
+############################################ 
 class SKStandardScaler(TransformerMixin):
-    """This function performs normalization to the data 
+    """This function performs normalization to the EEG data 
         using the sklearn standardscaler module.
+        
+        Read more in sklearn.preprocessing StandardScaler 
         
         Parameters:
         ----------
-        Input : 3D numpy array 
-            
+        Input : 
+            A numpy array of shape (samples, channel, times)            
         
-        Returns: Normalized 3D tensor 
+        Returns: 
+            Normalized numpy array of shape (samples, channel, times) 
         ---------        
-    """
-    
+    """    
     def __init__(self, **kwargs):
         self._scaler = StandardScaler(copy=True, **kwargs)
         self._orig_shape = None
@@ -50,16 +52,35 @@ class SKStandardScaler(TransformerMixin):
         if len(X.shape) >= 2:
             X = X.reshape(-1, *self._orig_shape)
         return X    
-    
+
+############################################
 def load_pooled(data, subjectIndex, class_name, 
-                normalize = True, test_size = 0.15):    
+                normalize = True, test_size = 0.15):  
     
-    """Creates pooled data from all subject specific EEG dataset.              
-    returns dictionary of:
-        X_train, X_valid, X_test: np.array of shape 
-        (samples, channel, times), data features
-        y_train: np.array of shape (samples), data labels
-    """      
+    """Creates pooled data from all subject specific EEG dataset.          
+    
+    Parameters:
+    -------------------------
+    Input: a python list containing MNE EEG data objects. 
+    
+    For instance, a list with the following elements:    
+    [<Epochs  |   720 events, 'left_hand': 360  'right_hand': 360>,
+    <Epochs   |   680 events, 'left_hand': 340, 'right_hand': 340>]
+  
+    Returns:
+    -------------------------
+    A dictionary :
+        X_train, X_valid, X_test: 
+        np.array of shape >>>  (samples, channel, times), 
+        
+        Data labels: 
+        y_train, y_valid, y_test
+    -------------------------
+    output = dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
+                  ytrain = y_train, yvalid = y_valid, ytest = y_test)
+    -------------------------    
+    """     
+    
     #% extract positive (+1) and negative (-1) classes      
     pos, neg = [], []    
     for ii in subjectIndex:
@@ -77,8 +98,7 @@ def load_pooled(data, subjectIndex, class_name,
 
     # get the labels and construct data array from all subjects 
     X = np.concatenate([s1pos, s1neg])        
-    Y = np.concatenate([np.ones(s1pos.shape[0]),
-                        np.zeros(s1neg.shape[0])])        
+    Y = np.concatenate([np.ones(s1pos.shape[0]), np.zeros(s1neg.shape[0])])        
     
     # normalization 
     if normalize:                                    
@@ -87,7 +107,7 @@ def load_pooled(data, subjectIndex, class_name,
         
     # split the data using sklearn split function 
     x_rest, x_test, y_rest, y_test =\
-        train_test_split(X, Y, test_size=test_size, random_state=42, 
+        train_test_split(X, Y, test_size=test_size, random_state=42,
                          stratify=Y)
 
     x_train, x_valid, y_train, y_valid =\
@@ -95,15 +115,48 @@ def load_pooled(data, subjectIndex, class_name,
                          stratify=y_rest)                   
 
     # Convert to Pytorch tensors
-    X_train, X_valid, X_test = map(torch.FloatTensor, (x_train, x_valid, x_test))
-    y_train, y_valid, y_test = map(torch.FloatTensor, (y_train, y_valid, y_test))    
+    X_train, X_valid, X_test = map(torch.FloatTensor, 
+                                   (x_train, x_valid, x_test))
+    y_train, y_valid, y_test = map(torch.FloatTensor, 
+                                   (y_train, y_valid, y_test))    
 
     return dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                 ytrain = y_train, yvalid = y_valid, ytest = y_test)
 
 
+#########################################
 def subject_specific(data, subjectIndex, class_name, 
-                     normalize = True, test_size = 0.15):         
+                     normalize = True, test_size = 0.15):  
+    
+    """Creates a list of subject-specific EEG data with a  
+       [Xtrain, Xvalid, Xtest] from a list of MNE objects.        .          
+    
+    Parameters:
+    -------------------------
+    INPUT: a python list containing MNE EEG data objects from several subjects. 
+    
+    For instance, a list from one subject contains the following MNE objects:    
+    [<Epochs  |   720 events, 'left_hand': 360  'right_hand': 360>,
+    <Epochs   |   680 events, 'left_hand': 340, 'right_hand': 340>]
+  
+    Returns:
+    -------------------------
+    A list of dictionaries (e.g. output):
+        
+        output[0].keys() >> dict_keys(['xtrain', 'xvalid', 'xtest', 
+                                        ytrain', 'yvalid', 'ytest'])
+                   
+        Data np.array:
+        'xtrain', 'xvalid', 'xtest' of shape > (samples, channel, times), 
+        
+        Data labels: 
+        y_train, y_valid, y_test
+    -------------------------
+    OUTPUT = dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
+                  ytrain = y_train, yvalid = y_valid, ytest = y_test)
+    -------------------------    
+    """     
+    
     #% extract positive (+1) and negative (-1) classes          
     pos, neg = [], []      
     datx = []                            
@@ -143,19 +196,23 @@ def subject_specific(data, subjectIndex, class_name,
                              random_state = 42, stratify = y_rest)                   
 
        # Convert to Pytorch tensors
-        X_train, X_valid, X_test = map(torch.FloatTensor, (x_train, x_valid, x_test))
-        y_train, y_valid, y_test = map(torch.FloatTensor, (y_train, y_valid, y_test)) 
+        X_train, X_valid, X_test = map(torch.FloatTensor, 
+                                       (x_train, x_valid, x_test))
+        y_train, y_valid, y_test = map(torch.FloatTensor, 
+                                       (y_train, y_valid, y_test)) 
 
         datx.append(dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                         ytrain = y_train, yvalid = y_valid, ytest = y_test))                   
     return datx  
  
-#%%     
+############################################
 def augment_dataset(X, Y, std_dev, multiple):
     """
     Augments the size of the dataset by introducing unbiased gaussian noise.
     Resulting dataset is 'multiple' times bigger than original.
-    Args:
+    
+    Parameters:
+    -------------------------
         X (torch.FloatTensor): Input training data
         Y (torch.FloatTensor): Target training data
         
@@ -170,9 +227,19 @@ def augment_dataset(X, Y, std_dev, multiple):
         nY  = torch.cat((nY, Y))        
     return nX, nY
 
-#%%
+############################################
 def crop_data(fs, crop_length, xdata, ylabel):   
-    
+    """ Crop EEG data along time points with pre-defined time segment,
+        and generate multiple cropped segments.
+        
+        Parameters:
+        -----------
+        fs          = EEG sampling frequency rate
+        crop_length = length of crop time-window in seconds
+        xdata       = 
+        
+        
+    """
     # fs = 100, crop_length = 1
     xpercent = 50 
     xoverlap = crop_length*xpercent/100    
@@ -188,20 +255,16 @@ def crop_data(fs, crop_length, xdata, ylabel):
         if ii == 0:
             tstart = tstart    
             tstop  = tstart + desired_length + overlap            
-            Xi, Yi = xdata[:,:,tstart:tstop], ylabel
-            #print(tstart/fs, tstop/fs)    
-            #print('X::', Xi.shape, '-- Y::',  Yi.shape)    
+            Xi, Yi = xdata[:,:,tstart:tstop], ylabel 
         else:
             try:                
                 tstart = tstart + desired_length  
                 tstop  = tstart + desired_length + overlap
                 # concatenate 
                 Xi = torch.cat([Xi, xdata[:,:,tstart:tstop]])
-                Yi = torch.cat([Yi, ylabel])                  
-                #print(tstart/fs, tstop/fs)    
-                #print('X::', Xi.shape, '-- Y::',  Yi.shape)         
+                Yi = torch.cat([Yi, ylabel])
+       
             except:
                 pass             
-            #print(tstart/fs, tstop/fs)    
-            #print('X::', Xi.shape, '-- Y::',  Yi.shape)         
+       
     return Xi, Yi  
