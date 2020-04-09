@@ -103,7 +103,7 @@ def load_pooled(data, subjectIndex, class_name,
 
 
 def subject_specific(data, subjectIndex, class_name, 
-                     normalize = True, test_size = 0.15):       
+                     normalize = True, test_size = 0.15):         
     #% extract positive (+1) and negative (-1) classes          
     pos, neg = [], []      
     datx = []                            
