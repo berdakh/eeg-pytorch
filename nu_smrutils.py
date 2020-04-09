@@ -9,6 +9,18 @@ from sklearn.model_selection import train_test_split
 
 #%%%%%%%%% 
 class SKStandardScaler(TransformerMixin):
+    """This function performs normalization to the data 
+        using the sklearn standardscaler module.
+        
+        Parameters:
+        ----------
+        Input : 3D numpy array 
+            
+        
+        Returns: Normalized 3D tensor 
+        ---------        
+    """
+    
     def __init__(self, **kwargs):
         self._scaler = StandardScaler(copy=True, **kwargs)
         self._orig_shape = None
@@ -40,7 +52,8 @@ class SKStandardScaler(TransformerMixin):
         return X    
     
 def load_pooled(data, subjectIndex, class_name, 
-                normalize = True, test_size = 0.15):         
+                normalize = True, test_size = 0.15):    
+    
     """Creates pooled data from all subject specific EEG dataset.              
     returns dictionary of:
         X_train, X_valid, X_test: np.array of shape 
@@ -82,10 +95,8 @@ def load_pooled(data, subjectIndex, class_name,
                          stratify=y_rest)                   
 
     # Convert to Pytorch tensors
-    X_train, X_valid, X_test = map(torch.FloatTensor, 
-                                   (x_train, x_valid, x_test))
-    y_train, y_valid, y_test = map(torch.FloatTensor, 
-                                   (y_train, y_valid, y_test))    
+    X_train, X_valid, X_test = map(torch.FloatTensor, (x_train, x_valid, x_test))
+    y_train, y_valid, y_test = map(torch.FloatTensor, (y_train, y_valid, y_test))    
 
     return dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                 ytrain = y_train, yvalid = y_valid, ytest = y_test)
@@ -160,7 +171,8 @@ def augment_dataset(X, Y, std_dev, multiple):
     return nX, nY
 
 #%%
-def crop_data(fs, crop_length, xdata, ylabel):       
+def crop_data(fs, crop_length, xdata, ylabel):   
+    
     # fs = 100, crop_length = 1
     xpercent = 50 
     xoverlap = crop_length*xpercent/100    
