@@ -66,7 +66,7 @@ def load_pooled(data, subjectIndex, class_name,
     
     For instance, a list with the following elements:    
     [<Epochs  |   720 events, 'left_hand': 360  'right_hand': 360>,
-    <Epochs   |   680 events, 'left_hand': 340, 'right_hand': 340>]
+     <Epochs   |  680 events, 'left_hand': 340, 'right_hand': 340>]
   
     Returns:
     -------------------------
@@ -179,8 +179,7 @@ def subject_specific(data, subjectIndex, class_name,
         X, Y = [], []                  
         X = np.concatenate([pos[ii], neg[ii]])            
         Y = np.concatenate([np.ones(pos[ii].shape[0]), 
-                            np.zeros(neg[ii].shape[0])])            
-
+                            np.zeros(neg[ii].shape[0])])     
         #% normalization 
         if normalize:
             scaler = SKStandardScaler()
@@ -188,7 +187,7 @@ def subject_specific(data, subjectIndex, class_name,
 
         x_rest, x_test, y_rest, y_test =\
             train_test_split(X, Y, test_size = test_size, 
-                             random_state=42, stratify = Y)            
+                             random_state=42, stratify = Y)    
         
         x_train, x_valid, y_train, y_valid =\
             train_test_split(x_rest, y_rest, test_size = 0.20, 
@@ -201,7 +200,8 @@ def subject_specific(data, subjectIndex, class_name,
                                        (y_train, y_valid, y_test)) 
 
         datx.append(dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
-                        ytrain = y_train, yvalid = y_valid, ytest = y_test))                   
+                        ytrain = y_train, yvalid = y_valid, ytest = y_test))  
+        
     return datx  
  
 ############################################
@@ -239,8 +239,7 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
         xdata       : numpy array of shape (samples, channel, times)
         xpercent    : amount of overlap in percentage  
         
-    """
-    
+    """    
     xoverlap = crop_length*xpercent/100    
     desired_length = np.int(fs*crop_length)
     overlap = np.int(fs*xoverlap) 
@@ -264,7 +263,6 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
                 Yi = torch.cat([Yi, ylabel])
                 
             except:
-                pass        
-       
+                pass       
     return Xi, Yi  
 ############################################
