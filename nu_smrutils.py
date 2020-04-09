@@ -3,11 +3,20 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
   
 import numpy as np
+import pickle 
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin 
 from sklearn.model_selection import train_test_split
 
-############################################ 
+
+###############
+def loaddat(filename):
+    with open(filename, 'rb') as handle:
+        data = pickle.load(handle)
+    return data
+
+###############
 class SKStandardScaler(TransformerMixin):    
     """
     This function performs normalization to the EEG data 
@@ -54,7 +63,7 @@ class SKStandardScaler(TransformerMixin):
             X = X.reshape(-1, *self._orig_shape)
         return X    
 
-############################################
+############### 
 def load_pooled(data, subjectIndex, class_name, 
                 normalize = True, test_size = 0.15):      
     """
@@ -83,6 +92,7 @@ def load_pooled(data, subjectIndex, class_name,
     """         
     #% extract positive (+1) and negative (-1) classes      
     pos, neg = [], []    
+    
     for ii in subjectIndex:
         try: # get numpy data from the mne object                     
             pos.append(data[ii][class_name[0]].get_data())
@@ -124,7 +134,8 @@ def load_pooled(data, subjectIndex, class_name,
                 ytrain = y_train, yvalid = y_valid, ytest = y_test)
 
 
-#########################################
+
+###############
 def subject_specific(data, subjectIndex, class_name, 
                      normalize = True, test_size = 0.15):      
     """
@@ -204,7 +215,7 @@ def subject_specific(data, subjectIndex, class_name,
         
     return datx  
  
-############################################
+###############
 def augment_dataset(X, Y, std_dev, multiple):
     """
     Augments the size of the dataset by introducing unbiased gaussian noise.
@@ -227,7 +238,7 @@ def augment_dataset(X, Y, std_dev, multiple):
     return nX, nY
 
 
-############################################
+############### 
 def crop_data(fs, crop_length, xdata, ylabel, xpercent):   
     """ Crop EEG data along time points with pre-defined time segment,
         and generate multiple cropped segments.
@@ -265,4 +276,4 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
             except:
                 pass       
     return Xi, Yi  
-############################################
+###############
