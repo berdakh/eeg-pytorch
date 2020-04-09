@@ -8,20 +8,21 @@ from sklearn.base import TransformerMixin
 from sklearn.model_selection import train_test_split
 
 ############################################ 
-class SKStandardScaler(TransformerMixin):
-    """This function performs normalization to the EEG data 
-        using the sklearn standardscaler module.
+class SKStandardScaler(TransformerMixin):    
+    """
+    This function performs normalization to the EEG data 
+    using the sklearn standardscaler module.
         
-        Read more in sklearn.preprocessing StandardScaler 
+    Read more in sklearn.preprocessing StandardScaler 
         
-        Parameters:
-        ----------
-        Input : 
-            A numpy array of shape (samples, channel, times)            
+    Parameters:
+    ----------
+    Input : 
+        A numpy array of shape (samples, channel, times)            
         
-        Returns: 
-            Normalized numpy array of shape (samples, channel, times) 
-        ---------        
+    Returns: 
+        Normalized numpy array of shape (samples, channel, times) 
+    ---------        
     """    
     def __init__(self, **kwargs):
         self._scaler = StandardScaler(copy=True, **kwargs)
@@ -55,9 +56,9 @@ class SKStandardScaler(TransformerMixin):
 
 ############################################
 def load_pooled(data, subjectIndex, class_name, 
-                normalize = True, test_size = 0.15):  
-    
-    """Creates pooled data from all subject specific EEG dataset.          
+                normalize = True, test_size = 0.15):      
+    """
+    Creates pooled data from all subject specific EEG dataset.          
     
     Parameters:
     -------------------------
@@ -79,8 +80,7 @@ def load_pooled(data, subjectIndex, class_name,
     output = dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                   ytrain = y_train, yvalid = y_valid, ytest = y_test)
     -------------------------    
-    """     
-    
+    """         
     #% extract positive (+1) and negative (-1) classes      
     pos, neg = [], []    
     for ii in subjectIndex:
@@ -126,10 +126,10 @@ def load_pooled(data, subjectIndex, class_name,
 
 #########################################
 def subject_specific(data, subjectIndex, class_name, 
-                     normalize = True, test_size = 0.15):  
-    
-    """Creates a list of subject-specific EEG data with a  
-       [Xtrain, Xvalid, Xtest] from a list of MNE objects.        .          
+                     normalize = True, test_size = 0.15):      
+    """
+    Creates a list of subject-specific EEG data with a  
+    [Xtrain, Xvalid, Xtest] from a list of MNE objects.        .          
     
     Parameters:
     -------------------------
@@ -155,8 +155,7 @@ def subject_specific(data, subjectIndex, class_name,
     OUTPUT = dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                   ytrain = y_train, yvalid = y_valid, ytest = y_test)
     -------------------------    
-    """     
-    
+    """         
     #% extract positive (+1) and negative (-1) classes          
     pos, neg = [], []      
     datx = []                            
@@ -227,21 +226,21 @@ def augment_dataset(X, Y, std_dev, multiple):
         nY  = torch.cat((nY, Y))        
     return nX, nY
 
+
 ############################################
-def crop_data(fs, crop_length, xdata, ylabel):   
+def crop_data(fs, crop_length, xdata, ylabel, xpercent):   
     """ Crop EEG data along time points with pre-defined time segment,
         and generate multiple cropped segments.
         
         Parameters:
         -----------
-        fs          = EEG sampling frequency rate
-        crop_length = length of crop time-window in seconds
-        xdata       = 
-        
+        fs          : EEG sampling frequency rate
+        crop_length : length of crop time-window in seconds
+        xdata       : numpy array of shape (samples, channel, times)
+        xpercent    : amount of overlap in percentage  
         
     """
-    # fs = 100, crop_length = 1
-    xpercent = 50 
+    
     xoverlap = crop_length*xpercent/100    
     desired_length = np.int(fs*crop_length)
     overlap = np.int(fs*xoverlap) 
@@ -260,11 +259,12 @@ def crop_data(fs, crop_length, xdata, ylabel):
             try:                
                 tstart = tstart + desired_length  
                 tstop  = tstart + desired_length + overlap
-                # concatenate 
+
                 Xi = torch.cat([Xi, xdata[:,:,tstart:tstop]])
                 Yi = torch.cat([Yi, ylabel])
-       
+                
             except:
-                pass             
+                pass        
        
     return Xi, Yi  
+############################################
