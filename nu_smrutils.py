@@ -41,7 +41,7 @@ class SKStandardScaler(TransformerMixin):
     def fit(self, X, **kwargs):
         X = np.array(X)    
         if len(X.shape) > 1:
-            self._orig_shape = X.shape[1:]WWW
+            self._orig_shape = X.shape[1:]
         X = self._flatten(X)
         self._scaler.fit(X, **kwargs)
         return self
@@ -126,7 +126,7 @@ def load_pooled(data, subjectIndex, class_name,
                          stratify=y_rest)                   
 
     # Convert to Pytorch tensors
-    X_train, X_valid, X_test = map(torch.FloatTensor, 
+    X_train, X_valid, X_test = map(torch.FloatTensor,  
                                    (x_train, x_valid, x_test))
     y_train, y_valid, y_test = map(torch.FloatTensor, 
                                    (y_train, y_valid, y_test))    
@@ -212,7 +212,7 @@ def subject_specific(data, subjectIndex, class_name,
                                        (y_train, y_valid, y_test)) 
 
         datx.append(dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
-                        ytrain = y_train, yvalid = y_valid, ytest = y_test))  
+                        ytrain = y_train, yvalid = y_valid, ytest = y_test)) 
         
     return datx  
  
