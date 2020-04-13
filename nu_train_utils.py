@@ -11,6 +11,7 @@ import pdb
 
 ################
 dev = torch.device("cpu")
+
 if torch.cuda.is_available():
     dev = torch.device("cuda")
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -29,10 +30,9 @@ def best_epoch_labels(train_labels, best_epoch):
 def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
                 lr_scheduler=None, num_epochs=50, verbose=2, LSTM = False):    
     
-      start_time = time.time()
-        
+      start_time = time.time()        
       best_model, best_acc = model, 0.0 
-      train_losses, val_losses, train_accs, val_accs, train_labels, val_labels  = [],[],[],[],[],[]
+      train_losses,val_losses,train_accs,val_accs,train_labels,val_labels=[],[],[],[],[],[]
       
       for epoch in range(num_epochs):     
           if verbose > 1: print('Epoch {}/{}'.format(epoch+1, num_epochs))          
@@ -65,8 +65,7 @@ def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
                   # Backpropagate & weight update 
                   if phase == 'train':
                       loss.backward()
-                      optimizer.step()       
-                                        
+                      optimizer.step()                                               
                   # store batch performance 
                   with torch.no_grad():                      
                       running_loss     += float(loss.item())                  
@@ -84,13 +83,14 @@ def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
                   if phase == 'train':
                       train_losses.append(epoch_loss)
                       train_accs.append(epoch_acc)                   
-                      train_labels.append(dict(ypred = ypred_labels, ytrue = ytrue_labels))                      
+                      train_labels.append(dict(ypred = ypred_labels, ytrue = ytrue_labels))                     
                   else: 
                       val_losses.append(epoch_loss)
                       val_accs.append(epoch_acc)                
                       val_labels.append(dict(ypred = ypred_labels, ytrue = ytrue_labels))
     
-                  if verbose > 1: print('{} loss: {:.4f}, acc: {:.4f}'.format(phase, epoch_loss,
+                  if verbose > 1: print('{} loss: {:.4f}, acc: {:.4f}'.format(phase, 
+                                                                              epoch_loss,
                                                                               epoch_acc))
             
                   # Deep copy the best model using early stopping

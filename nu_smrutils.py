@@ -12,6 +12,8 @@ from sklearn.model_selection import train_test_split
 
 ###############
 def loaddat(filename):
+    """Loads pickle file
+    """
     with open(filename, 'rb') as handle:
         data = pickle.load(handle)
     return data
@@ -27,8 +29,7 @@ class SKStandardScaler(TransformerMixin):
     Parameters:
     ----------
     Input : 
-        A numpy array of shape (samples, channel, times)            
-        
+        A numpy array of shape (samples, channel, times)       
     Returns: 
         Normalized numpy array of shape (samples, channel, times) 
     ---------        
@@ -40,7 +41,7 @@ class SKStandardScaler(TransformerMixin):
     def fit(self, X, **kwargs):
         X = np.array(X)    
         if len(X.shape) > 1:
-            self._orig_shape = X.shape[1:]
+            self._orig_shape = X.shape[1:]WWW
         X = self._flatten(X)
         self._scaler.fit(X, **kwargs)
         return self
@@ -134,7 +135,6 @@ def load_pooled(data, subjectIndex, class_name,
                 ytrain = y_train, yvalid = y_valid, ytest = y_test)
 
 
-
 ###############
 def subject_specific(data, subjectIndex, class_name, 
                      normalize = True, test_size = 0.15):      
@@ -166,7 +166,8 @@ def subject_specific(data, subjectIndex, class_name,
     OUTPUT = dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                   ytrain = y_train, yvalid = y_valid, ytest = y_test)
     -------------------------    
-    """         
+    """    
+    
     #% extract positive (+1) and negative (-1) classes          
     pos, neg = [], []      
     datx = []                            
