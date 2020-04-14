@@ -268,25 +268,25 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
             try:                
                 tstart = tstart + desired_length  
                 tstop  = tstart + desired_length + overlap
-
-                Xi = torch.cat([Xi, xdata[:,:,tstart:tstop]])
-                Yi = torch.cat([Yi, ylabel])
                 
+                Xi = torch.cat([Xi, xdata[:,:,tstart:tstop]])
+                Yi = torch.cat([Yi, ylabel])                
             except:
                 pass       
     return Xi, Yi  
-###############
 
+
+#############################################
 import time
 import copy
-################
+##############################################
 dev = torch.device("cpu")
 
 if torch.cuda.is_available():
     dev = torch.device("cuda")
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     
-################
+#############################################################
 def best_epoch_labels(train_labels, best_epoch):
     """This function is used by train_model to store best epoch labels"""
     for jj in range(len(train_labels[best_epoch]['ypred'])-1):    
@@ -297,9 +297,9 @@ def best_epoch_labels(train_labels, best_epoch):
         ytrue = np.concatenate([ytrue, train_labels[best_epoch]['ytrue'][jj+1]])            
     return ypred, ytrue
 
-###############
+############################################################
 def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
-                lr_scheduler=None, num_epochs=50, verbose=2, LSTM = False):    
+                lr_scheduler = None, num_epochs = 50, verbose = 2, LSTM = False):    
       """
       Method to train a PyTorch neural network with the given parameters for a
       certain number of epochs. Keeps track of the model yielding the best validation
@@ -410,5 +410,6 @@ def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
           print('Best Epoch :', best_epoch+1) 
             
       return best_model, train_losses, val_losses, train_accs, val_accs, info
-#################
+####################################################################
+ 
 
