@@ -2,8 +2,7 @@
 
 This repo contains a source code analysis of motor-imagery EEG data in MNE-Python environment, and deep learning model training. 
 
-In particular, on can perform CNN model selection for decoding EEG motor-imagery patterns via PyTorch
-This repo was created to help you to get started with EEG + Deep learning research. 
+In particular, on can perform CNN model selection for decoding EEG motor-imagery patterns via PyTorch. This repo was created to help students to get started with EEG and Deep learning research. 
 
 Required packages:
 - pip install mne==0.18.0 
@@ -12,10 +11,17 @@ Required packages:
 
 
 ***
+# Dataset Information
 
-## Dataset Information
+### Note the datasets and their descriptions were accessed via Mother of All BCI Benchmarks (MOABB)
 
-Dataset: 
+http://moabb.neurotechx.com/docs/datasets.html
+
+For more details refer to MOABB website, where you can download these datasets. 
+ 
+----- 
+## Dataset: 
+
 https://drive.google.com/drive/folders/1bOm8l7o0MGL6fW7-EoPPrM3Q-jVOdmSV?usp=sharing
 
 Four different datasets are provided - BCI competition that is publicly available online
