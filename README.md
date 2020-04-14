@@ -3,7 +3,7 @@
 This repo contains a source code analysis of motor-imagery EEG data in MNE-Python environment, and deep learning model training. 
 
 In particular, on can perform CNN model selection for decoding EEG motor-imagery patterns via PyTorch
-This repo was created to help students to get started with EEG + Deep learning research. 
+This repo was created to help you to get started with EEG + Deep learning research. 
 
 Required packages:
 - pip install mne==0.18.0 
