@@ -529,7 +529,9 @@ def train_time(model, dset_loaders, dset_sizes, criterion,
           batch_start_time = time.time() # record time                 
             
           preds= model(inputs.to(dev))   # make the prediction 
-          loss = criterion(preds, labels.type(torch.LongTensor).to(dev)) # Calculate loss                 loss.backward() # Backpropogate       
+          loss = criterion(preds, labels.type(torch.LongTensor).to(dev)) # Calculate loss  
+            
+          loss.backward() # Backpropogate       
           optimizer.step()# Update the weights          
    
           time_elapsed_batch.append(time.time() - batch_start_time) # record time
