@@ -11,7 +11,7 @@ from sklearn.base import TransformerMixin
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
-
+#%%
 ###############
 def loaddat(filename):
     """Loads pickle file
@@ -501,7 +501,6 @@ class CNN2D(torch.nn.Module):
         out = self.Dropout(out)
         out = self.fc2(out)
         return out
-
     
 #%% #################
 def train_time(model, dset_loaders, dset_sizes, criterion, 
@@ -529,7 +528,8 @@ def train_time(model, dset_loaders, dset_sizes, criterion,
           batch_start_time = time.time() # record time                 
             
           preds= model(inputs.to(dev))   # make the prediction 
-          loss = criterion(preds, labels.type(torch.LongTensor).to(dev)) # Calculate loss  
+          loss = criterion(preds, labels.type(torch.LongTensor).to(dev)) 
+            
             
           loss.backward() # Backpropogate       
           optimizer.step()# Update the weights          
@@ -549,4 +549,3 @@ def train_time(model, dset_loaders, dset_sizes, criterion,
     traintime['total_time_elapsed'] = total_time_elapsed
    
     return traintime 
-    
