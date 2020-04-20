@@ -2,6 +2,10 @@
 # Edit at https://www.gitignore.io/?templates=python
 
 *.pickle
+*.svg 
+*.pdf 
+*.tex
+*.docx
 
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
