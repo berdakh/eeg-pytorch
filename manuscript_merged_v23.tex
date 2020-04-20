@@ -1,0 +1,417 @@
+\documentclass{ieeeaccess}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+		T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{multirow}
+\newcommand{\bm}{\mathbf}
+\newcommand{\BS}{\boldsymbol}
+\newcommand\trsp{{\!\scriptscriptstyle\top}}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\usepackage{mathtools}
+\usepackage{subfigure}
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+\usepackage{float}
+%\usepackage{hyperref} 
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+		\node[shape=circle, draw, inner sep=1.1pt] (char) {#1};}}
+\usepackage{nth}
+\renewcommand{\thetable}{\arabic{table}}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabular}{\scriptsize}
+\newcommand\MyBox[2]{
+	\fbox{\lower0.75cm
+		\vbox to 1.7cm{\vfil
+			\hbox to 1.7cm{\hfil\parbox{1.4cm}{#1\\#2}\hfil}
+			\vfil}}
+}
+\newcommand{\quotes}[1]{``#1''}
+
+\begin{document}	
+\history{}
+\doi{}
+
+\title{A Brute-force CNN Model Selection for Accurate Classification of Sensorimotor Rhythms in BCIs}
+
+\author{\uppercase{Berdakh~Abibullaev},\authorrefmark{1}~\IEEEmembership{Member,~IEEE}, 
+	\uppercase{Irina Dolzhikova}\authorrefmark{2},\\ 
+	\uppercase{Amin Zollanvari}\authorrefmark{3}, ~\IEEEmembership{Senior Member,~IEEE}} 
+
+\address[1]{Department of Robotics and Mechatronics, Nazarbayev University, 010000, Kazakhstan (e-mail: berdakh.abibullaev@nu.edu.kz)} 
+\address[2]{Department of Electrical Engineering, Nazarbayev University, 010000, Kazakhstan (e-mail: ifedorova@nu.edu.kz)}        
+\address[3]{Department of Electrical Engineering, Nazarbayev University, 010000, Kazakhstan (e-mail: amin.zollanvari@nu.edu.kz)}        
+%\tfootnote{''}
+\markboth
+{Abibullaev \headeretal: A Brute-force CNN Model Selection for Accurate Classification of Sensorimotor Rhythms in BCIs}
+{Abibullaev \headeretal: A Brute-force CNN Model Selection for Accurate Classification of Sensorimotor Rhythms in BCIs}
+
+\corresp{Corresponding author: Amin Zollanvari (e-mail: amin.zollanvari@nu.edu.kz).}
+%\corresp{This work was supported by the Nazarbayev University Faculty Development Competitive
+%	Research Grant, under award number SOE2018008.}
+
+\begin{abstract}
+The ultimate goal of Brain-Computer Interface (BCI) is to enable individuals to interact with their environment using their thoughts. In this regard, a salient issue is the identification of brain activity patterns that can be used to classify intention. Using Electroencephalographic (EEG) signals as archetypical, this classification problem generally possesses two stages: (i) extracting features from collected EEG waveforms; and (ii) constructing a classifier using extracted features. With the advent of deep learning, however, the former stage is generally absorbed into the latter. Nevertheless, the burden has now shifted from trying a number of feature extraction methods to tuning a large number of hyperparameters and architectures. Among existing deep learning architectures used in BCI, convolutional neural networks (CNNs) has become an attractive choice. Nevertheless, most of the existing studies that use these networks are based on well-known architectures such as AlexNet or ResNet, use the domain knowledge to construct the final architecture, or have an unclear strategy deployed for model selection. This raises the question as to whether constructing accurate CNN-based classifiers is possible using a principled model selection, with the most straightforward one being the brute-force search or, alternatively, experience and developing high intuition regarding hyperparameters combined with an \textit{ad hoc} approach is the most prudent way to go about designing them. To this end, in this paper, we first define a space of hyperparameters restricted by our computing power. Then we show that an exhaustive search within this limited space of CNN hyperparameters leads to accurate classification of sensorimotor rhythms that arise during motor imagery tasks. 
+\end{abstract}
+
+\begin{keywords}
+    Brain-computer interfaces, motor imagery,  deep learning, convolutional neural network, model selection, brute-force search, sensory-motor rhythms.
+\end{keywords}
+
+\titlepgskip=-15pt  
+\maketitle
+
+\section{Introduction}
+\PARstart{B}{rain}-Computer Interface (BCI) research aims to provide alternative channels for communication and control without involving any peripheral nervous system \cite{wolpaw2002brain, vallabhaneni2005brain, birbaumer2007brain}. This technology is important for people who are affected by motor disabilities such as stroke, paraplegia, and amyotrophic lateral sclerosis \cite{machado2010eeg, Kilicarslan2013}. It has already been employed to control external devices such as robotic prostheses/orthoses \cite{hochberg2012reach}, and exoskeletons for stroke rehabilitation studies \cite{bhagat2016design, venkatakrishnan2014applications}. 
+
+The design of a high-performance EEG-based BCI system is an open research problem and requires accurate decoding of the EEG signals generated by neuro-electrical activities in the brain \cite{gerven2009, lotte2007review,lotte2018review}. 
+\textcolor{red}{EEG-based BCI systems are classified as exogenous and endogenous, where the former requires an external stimulus to excite certain responses in the brain \cite{wolpaw2012brain, nicolas2012brain}. Depending on the type of stimulation, the exogenous BCIs use steady state visual evoked potentials (SSVEPs), or on event-related potentials (ERPs), brain responses elicited in response to cognitive or sensory events. The advantages of exogenous BCIs are related to high information transmission rate with little user training requirement \cite{nicolas2012brain}. However, an exogenous BCI system contrain a user to focus on the visual stimuli and, as a result, its usefulness may be limited, especially for severely motor-impaired people \cite{chaudhary2016brain}.} 
+\textcolor{red}{This paper focuses on the endogenous category of BCI systems which utilize sensory-motor rythms (SMRs) for control of external devices, independent of any stimuli. The SMRs represent the modulations of oscillatory activity in EEG induced by motor imagery of limb movement as input features \cite{pfurtscheller2000spatiotemporal, pfurtscheller2006future}.}  
+
+From a machine learning perspective, there is already a variety of methods for feature extraction, feature selection, and classification for SMR-based BCI systems \cite{bashashati2007survey, lotte2018review}. However, recent BCI studies exhibit a trend of moving towards deep learning as it allows to operate directly on raw data and implements various stages of the model training within one block \cite{roy2019deep}.  
+
+Convolutional neural networks (CNN) have emerged as powerful deep learning architectures for decoding complex ERD/ERS patterns elicited in SMRs in various BCI applications \cite{roy2019deep, zhang2019survey}. Several studies have already demonstrated the efficiency of CNNs in terms of training time (as compared to some of the popular recurrent neural networks) and effectiveness to capture latent features from raw EEG data \cite{aggarwal2019signal}. For instance, Schirrmeister \textit{et al.} \cite{schirrmeister2017deep} evaluated several design choices to develop CNN-based architecture for interpreting the imagined and executed tasks using raw EEG data. Uktveris and Jusas \cite{uktveris2017application} tested 11 different CNN architectures and selected the optimal CNN parameters for four-class motor imagery classification. 
+Sakhave \textit{et al.}  \cite{sakhavi2018learning} investigated three different convolution scenarios: convolution across time (Channel-wise CNN), convolution across channels (Channel-mixing CNN), and convolution across both time and channels with the two-dimensional kernel (2-D CNN), and demonstrated the effectiveness of CNNs in SMR classification. Dai \textit{et al.} \cite{dai2019hs} proposed a hybrid-scale CNN architecture that incorporates a data augmentation technique and achieved accurate classification in two different motor imagery datasets. In addition to purely CNN-based architectures, hybrid models incorporating CNN and other deep structures have been used in the context of SMR-based BCIs. For instance, studies in \cite{tabar2016novel, tang2018hybrid, dai2019eeg} investigated hybrid CNN and stacked autoencoders (AE) architectures for EEG classification. Likewise, constructing a hybrid CNN and gated recurrent units \cite{qiao2019deep}, and CNN with the long-term short-term memory networks \cite{zhang2019novel} have been studied.
+
+The aforementioned studies exhibit the state-of-the-art performance of deep learning models in learning from raw data, alleviating the need for manual EEG feature engineering. Nevertheless, some studies still explore various EEG data transformation techniques that could possibly enhance the performance of deep learning models. For instance, Chaudhary \textit{et al.} \cite{chaudhary2019convolutional} applied continuous wavelet transforms (CWT) and short-time-Fourier-transform to EEG data, used the outcome of these transformation as inputs to an AlexNet-based CNN classifier, and showed that CWT features yield better accuracy \cite{krizhevsky2012imagenet}. A similar study \cite{ortiz2019new} applied blind source separation and CWT to preprocess EEG as input to a CNN classifier \cite{zhang2019novelx} and studied effects of adjustments in the convolutional stride and max-pooling size to improve classification accuracy.    
+Further research attempted to identify the best feature extraction and deep learning based classification pipeline for the SMR based BCIs \cite{craik2019deep, roy2019deep, lotte2018review}. However,  a recent study by Lawhern \textit{et al.} proposed a CNN-based architecture called EEGNet, which incorporates a feature extractor and a classifier in a CNN model \cite{lawhern2016eegnet}. Specifically, the EEGNet was inspired by the Filter Bank Common Spatial Patterns (FBCSP) - a celebrated spatial feature extraction method \cite{angbci, ang2008filter}. A comparative analysis between EEGNet and other approaches demonstrated that with a much more less number of parameters, EEGNet could perform as good as or even better than several other models in terms of generalization error across various BCI paradigms \cite{lawhern2016eegnet}. Another work inspired by the FBCSP method was presented in \cite{sakhavi2018learning, zhu2019separated}. The authors proposed a temporal representation of the EEG and optimized the CNN architecture for this representation in \cite{sakhavi2018learning}. 
+
+In this study, we are concerned with standard convolutional neural networks. Table \ref{tab1} summarizes the studies above from the perspective of hyperparameter selection strategy.  In this regard, we distinguish structural hyperparameters (number of layers, filters, kernel size, and the choice of activation functions) from algorithmic hyperparameters (batch size, dropout rate, signal segmentation size, and the choice of optimizer and its learning rate). 
+As seen in Table \ref{tab1}, most of the studies that use the neural networks are based on well-known architectures such as AlexNet or ResNet, use the domain knowledge to construct the final architecture or have an unclear strategy deployed for model selection. This state of affairs can be attributed to a relatively large number and wide range of hyperparameters involved, which together render a principled model selection difficult. This raises the question of whether a principled model selection, such as the brute-force search within a limited space of hyperparameters, could lead to architectures that can accurately classify motor imagery tasks based on collected EEG data. To examine this question, in this investigation, we conduct the first large-scale analysis in which we use EEG waveforms obtained from a number of subjects across different datasets to determine a single architecture via a brute-force model selection. We then examine the classification accuracy of the selected model on a set of subjects from an independent dataset that was unseen during the architecture selection phase. 
+
+%\textcolor{blue}{The methods proposed in our manuscript could be applied to develop motor-imagery based BCI speller, which is a typical BCI-based application that helps people with disabilities to express thoughts \cite{cao2017synchronous}. Another possible area for application is robot control \cite{aljalal2019robot}.}
+
+The paper is organized as follows. In Section \ref{sec:matmethods},  we provide a description of: (i) publicly available datasets used in our study; (ii) the pre-processing steps applied to our datasets. Section \ref{classificationrules} presents the CNN architectures that we use as part of our brute-force model selection procedure. In Section \ref{modelselect}, we discuss the CNN training and model selection procedure, and present the results of applying constructed models in Section \ref{sec:results} to independent test data. We summarize our key observations in Section \ref{sec:discussion} and, conclude the paper in Section \ref{sec:conclusion}. 
+
+        
+    \begin{table*} 
+        \caption{A summary of SMR based BCI studies that use Convolutional Neural Networks and corresponding strategies for hyperparameter selection} 
+        \setlength{\tabcolsep}{10pt} 
+        \begin{tabular}{|p{0.6cm}|p{9cm}|p{5cm}|}\hline
+            \textbf{\textbf{Study}} &  \textbf{Structural Hyperparameters} &  \textbf{Algorithmic Hyperparameters}  \\\hline
+            
+            \cite{schirrmeister2017deep}& (1) \textit{Deep CNN model} inspired by architecture of AlexNet \cite{krizhevsky2012imagenet}, 4 convolution-max-pooling blocks + dense softmax classification layer % temporal kernel size = 10$\times$1; 
+            \par
+            (2) \textit{Shallow CNN architecture} is inspired by FBCSP, 1 convolution-max-pooling block + dense softmax classification layer % temporal  kernel size = 25$\times$1;
+            \par
+            (3) \textit{hybrid CNN} - fusion of deep and shallow CNN after the final layer; \par
+            (4) \textit{Residual CNN} (for raw EEG signals) is based on ResNet \cite{he2016deep} &  Adam optimizer + early stopping method,\par Dropout + batch normalization\\
+            \hline
+            
+            \cite{uktveris2017application} & 11 different CNN architectures were tested, finally selected architecture: Convolutional layer (4$\times$4, 16 filters) + RELU layer + max-pooling layer (2$\times$2, stride 2) + fully connected layer + softmax layer%, optimal filter sizes: 7\times7, 11\times11 
+            & Optimal values of learning rate, batch size, etc. were found via parameter range scanning approach, Initial learning rate=0.01, Batch size=128 \\\hline 
+            \cite{lawhern2016eegnet}    & inspired by FBCSP, three types of convolutional layers are used : conventional convolution, depthwise convolution and separable convolution \cite{chollet2017xception}%, kernel length = 32
+            & Adam optimizer with default parameters, \par Dropout rate: 0.5 (within subject classification), 0.25 (cross-subject classification)\\
+            \hline   
+            \cite{sakhavi2018learning}  & inspired by FBCSP, size of the kernel and number of convolutional nodes are selected via cross-validation, Channel-wise CNN: 2 convolutional layers+ flattering+fully connected network, Channel-wise convolution with Channel Mixing: 3  convolutional layers+ flattering+fully connected network &  Adam optimizer with default parameters, \par dropout probability = 50\% \\
+            \hline
+            \cite{zhu2019separated}  & based on ResNet \cite{he2016deep}, employs CSP, 1-D CNN  & Nadam optimizer with default parameter, \par Batch size =50, \par Initial learning rate = 0.001, learning rate decay factor = 0.7 \\\hline
+            \cite{chaudhary2019convolutional}   & based on pre-trained AlexNet \cite{krizhevsky2012imagenet}, 5 convolutional layers (+ pooling layers) + 3 fully connected layers &  Learning rate = 0.001 \\
+            \hline               
+            
+            \cite{dai2019hs} & 2 convolutional layers + max pooling layer + flatten layer (2D or 1D) + 2 fully connected layers, impact of kernel size across the tested subject was investigated & Stochastic gradient descent optimization method, Dropout probability = 0.8,\par
+            L2 regularization parameter = 0.01,\par
+            Initial learning rate = 0.1, learning rate decay is 0.9\\
+            \hline   
+            
+            \cite{zhang2019novelx} &  inspired by architecture of LeNet \cite{lecun1998gradient},  Convolution-2D layer (200 filters of  size 3$\times$1) + max pooling- 2D layer (4$\times$4 pool size) + convolution-2D (200 filters of  size 2$\times$2) + max pooling- 2D layer (4$\times$4 pool size)+ flattening + 2 fully connected layers & Stochastic gradient descent optimizer, Learning rate = 0.001,\par L2 regularization parameter = 0.004\\
+            \hline
+            
+            \cite{ortiz2019new} & initial design was based on \cite{zhang2019novelx} (which in turn was based on LeNet \cite{lecun1998gradient}), Convolution-2D layer + max pooling- (4$\times$4 pool size) + convolution-2D  + max pooling (3$\times$3 pool size)+ flattening + 2 fully connected layers , analysis of the kernel size was conducted & Dropout =0.4 \\
+            \hline    
+        \end{tabular}
+        \label{tab1}    
+    \end{table*}      
+    
+    \section{Materials}
+    \subsection{Dataset description}
+    \label{sec:matmethods}
+    In training and choosing the structure of our constructed CNNs, we have used publicly available EEG data from different sources corresponding to motor-imagery tasks recorded from a number of subjects. In this study, we focus on the decoding of the limb imagery data corresponding to left-hand and right-hand imagery and select data corresponding to those imagery tasks accordingly.  {Further, we segmented the continuous EEG into a left-hand and right-hand imagination trials of $4$ seconds length after the mental imagery onset in all datasets.} The detail description of each dataset is provided below.  
+
+    
+    \subsubsection{Weibo2014}
+    This data set consists of EEG data recorded from ten healthy right-handed subjects (seven females and three males, 23–25 years old). The 64-channel data were acquired using a Neuroscan SynAmps2 amplifier at a sampling rate of 1000 Hz. The data were further band-pass filtered to the range of 0.5–50 Hz and down-sampled to 200 Hz for the subsequent analysis. The placement of the electrodes was according to the international 10-20 system referenced to the nose and grounded prefrontal lobe.  The original study investigated the differences in EEG patterns within simple limb imagery and compound limb motor imagery. A single trial lasted for eight seconds. After two seconds, visual cue in the form of a red circle was shown to participants for a second; subsequently, a cue indicating left-hand or right-hand imagery was shown during which the participants performed kinesthetic motor imagery for about four seconds.  The entire experiment lasted for nine sessions, wherein each session, 60 trials of motor imagery data were collected for each task (for more details, see \cite{yi2014evaluation}). 
+    
+    \subsubsection{Physionet}
+  
+    We used the Physionet Motor/Mental Imagery database, which corresponds to a large-scale motor-imagery EEG data acquired from 109 participants while performing different motor imagery tasks. The EEG data were sampled at 160 Hz from 64-channels using the BCI2000 system according to the international 10-10 electrode placement system. 
+    Here, we chose the trials that correspond to right-hand and left-hand motor imagery tasks. Each recorded trial lasted for 4 seconds, which was then followed by 4 seconds rest. The total number of trials acquired for right-hand and left-hand motor imagery tasks was equal to 46 trials for each subject. The dataset from this experiment is publicly available at \cite{Physiobank}---readers are referred to \cite{goldberger2000physiobank, schalk2004bci2000} for more details.
+     
+    \subsubsection{BCI Competition VI - Dataset 2a (BCI-DataSet2A)}
+    This data set was acquired from nine subjects using a cue-based BCI paradigm. Participants performed four different types of imagery tasks that included imagination of left-hand, right-hand, both feet, and tongue movement.  The data were obtained from two different sessions wherein each session, 288 trials were collected for a given imagery task.  A session started with a fixation cross on a black screen, and after two seconds, an additional visual cue arrow pointing to the left, right, up, and down was shown for 1.25 seconds. The participants were instructed to perform motor imagery tasks until the fixation cross disappeared on the screen after six seconds. EEG data were recorded monopolar using 22 Ag/AgCl electrodes according to the 10-20 electrode placement system. The reference electrode was set to the left mastoid while the ground was set to the right mastoid. The data were sampled with 250 Hz and bandpass-filtered between 0.5 Hz and 100 Hz (for more details, see \cite{tangermann2012review}).  
+    
+    \subsubsection{BCI Competition VI - Dataset 2b (BCI-DataSet2B)}
+    This data set consists of EEG data recorded from nine healthy, right-handed participants. EEG data were sampled with 250 Hz using three channels (C3, Cz, and C4) and bandpass-filtered between 0.5 Hz and 100 Hz. Each subject participated in five data acquisition sessions, where the first two sessions were conducted without feedback, and the last three sessions with feedback. The electrode Fz was used as EEG ground. Participants performed two-class motor imagery of the left-hand and right-hand movements using a cue-based paradigm. The total number of data samples recorded from each session for each motor imagery task was equal to 120 trials. Each trial in a session started with a fixation cross and an additional short acoustic warning tone. A few seconds later, a visual cue arrow was shown for 1.25 seconds, after which the participants were instructed to perform motor imagery tasks over four seconds.  There was a short break (1.5 seconds) between each consecutive trial. The session with feedback used a smiley on a screen at the beginning of each trial ($t=0$). The visual cue was shown between $t=3$ to $t=7.5$ seconds period, where subjects performed the motor imagery tasks (for more details, see \cite{leeb2007brain}. 
+        
+    \subsection{EEG Pre-processing}
+    \label{preprocessing}
+The deep learning research has shown enhanced performance in learning from raw EEG data, mitigating the need for preprocessing or handcrafted features \cite{Schirrmeister2017, craik2019deep, zhang2019survey}. 
+Here, we apply a minimal preprocessing to all four datasets described in the previous section, and refer readers to \cite{lawhern2016eegnet, Schirrmeister2017} for more details regarding the  preprocessing steps and usefulness of deep learning models employed. In this regard, the EEG waveforms were high-pass filtered above 4 Hz using a fourth-order Butterworth IIR filter. The high-pass filter with 4 Hz cut-off frequency was used to suppress electrooculographic artifacts that arise due to eye movement dominant between 0.1 to 4 Hz band in EEG. Other than that, and as it was suggested by \cite{Schirrmeister2017}, we did not apply low-pass filtering to leave the raw EEG data intact. 
+
+Further, the continuous EEG was segmented into a left-hand and right-hand imagination trials with a four seconds length following the mental imagery onset. Subsequently, EEG data trials were artifact corrected by applying a statistical threshold to exclude: (i) bad EEG trials correlated with egregious movement noise; and (ii) channels that are noisy because of possible poor connection to the scalp of a participant. Bad trials were identified by calculating the mean absolute value per trial and eliminating trials with values higher than three standard deviations over the mean trial. All the methods described here have been implemented in the MNE Python environment \cite{gramfort2013meg}. 
+
+The minimal preprocessing steps adopted allows the constructed CNNs to learn discriminative features automatically from a nearly set of raw EEG data without the imposition of prior knowledge through excessive preprocessing.
+    
+    \section{Classification Rules}
+    \label{classificationrules}
+    {The key question in this study is whether using standard convolutional neural networks within a systematic model selection would possibly lead to \textcolor{blue}{a comparable classification accuracy for motor imagery tasks as the current state-of-the-art deep learning architectures, which are partially inspired by domain knowledge.} Therefore, we first briefly describe the main building block of \textcolor{blue}{standard} CNNs, which is the convolutional operation, and we then briefly describe the EEGNet architecture \cite{lawhern2016eegnet}, which serves as the benchmark for comparison \textcolor{blue}{ as it has shown the state-of-the-art performance in various EEG classification tasks.} Hereafter, we refer to any specific CNN that is constructed as part of the systematic model selection process as \textit{ConvNet}. } 
+    
+    \subsection{Convolutional Layer} \label{ConvNetsec}
+    {As the name suggests, a convolutional layer convolves an input tensor by another tensor parameters tuned by the learning algorithm (\textit{kernel}). Let $\mathbf{\mathbf{X}}$ denote the 3-D input tensor with elements $\mathbf{\mathbf{X}}_{i, j, k}$ where $i$, $j$, and $k$ denote the channel (also known as depth), row, and column, respectively. Let us assume $1\leq i \leq c_{\mathbf{X}}$ (input channels),  $1\leq j \leq h_{\mathbf{X}}$ (input height),  and $1\leq k \leq w_{\mathbf{X}}$ (input width). For our data, the first convolutional layer has $c_{\mathbf{X}}=1$ (similar to a grayscale image),  $h_{\mathbf{X}}=16$ (number of EEG channels),  $w_{\mathbf{X}}=\lfloor 80\text{\, Hz} \times (4000) \text{\, ms} \rfloor=320$. }
+    
+    {The 4-D kernel tensor is denoted by $\mathbf{\mathbf{K}}$ with elements $\mathbf{\mathbf{K}}_{l, i, j, k}$ for $1\leq l \leq c_{\mathbf{Y}}$ (output channels),  $1\leq i \leq c_{\mathbf{X}}$,  $1\leq j \leq h_{\mathbf{K}}$ (kernel height),  and $1\leq j \leq w_{\mathbf{K}}$ (kernel width) where $h_{\mathbf{K}}< h_{\mathbf{X}}$ and $w_{\mathbf{K}}< w_{\mathbf{X}}$. Therefore, $\mathbf{\mathbf{K}}$ contains $c_{\mathbf{Y}}$ kernels (filters) of size $c_{\mathbf{X}}\, \text{[same as input]} \times h_{\mathbf{K}}\, \text{[smaller than input]} \times w_{\mathbf{K}} \, \text{[smaller than input]}$. Convolving $\mathbf{\mathbf{K}}$ across $\mathbf{\mathbf{X}}$ (with no padding/subsampling/bias terms) is obtained by computing the 3-D output tensor (\textit{feature map}) $\mathbf{\mathbf{Y}}$ with elements $\mathbf{\mathbf{Y}}_{l, m, n}$ where $1\leq l \leq c_{\mathbf{Y}}$,  $1\leq m \leq h_{\mathbf{Y}} = h_{\mathbf{X}}-h_{\mathbf{K}}+1$,  and $1\leq n \leq w_{\mathbf{Y}} = w_{\mathbf{X}}-w_{\mathbf{K}}+1$ as }
+    
+    \begin{equation}
+    \mathbf{\mathbf{Y}}_{l, m, n} = \sum_{i, j, k} \mathbf{\mathbf{X}}_{i, m+j-1, n+k-1} \mathbf{\mathbf{K}}_{l, i, j, k}\, , 
+    \label{observations}
+    \end{equation}
+    where the summation is over all valid indices. When there are multiple convolutional layers in one network,  the output feature map of one layer serves as the input to the next layer. Assuming one bias term for each kernel, in training a CNN $c_{\mathbf{Y}} (c_{\mathbf{X}}  h_{\mathbf{K}} w_{\mathbf{K}} + 1)$ parameters are learned for each layer using the back-propagation algorithm \cite{witten17}.
+    
+    
+    \subsection{EEGNet: A Benchmark for Comparison}
+    \label{sec:EEGnet}
+    As a benchmark for comparison of the performance of constructed ConvNets presented in the next section, we consider a well-known deep learning architecture known as EEGNet \cite{lawhern2016eegnet}.
+    
+    The EEGNet architecture is composed of three convolutional layers with the following characteristics: (i) the first convolutional layer uses a temporal convolution to learn parameters of frequency filters; (ii) the second convolutional layer uses a depthwise convolution designed to learn frequency-specific spatial filters; and (iii) the third convolutional layer uses the combination of a depthwise convolution,  which is used to learn a temporal summary for each feature map individually, followed by a pointwise convolution, which is used to learn an optimal combination of feature maps. The details of the network architecture can be found in Table \ref{tab:EEGNet} where the convolutional operations,  batch normalization,  the exponential linear unit activation function, the average pooling operation, and the fully connected linear layer are identified by Conv2d,  BatchNorm2d,  ELU,  AvgPool2d,  and linear,  respectively. We re-implemented EEGNet models in PyTorch using the source code-shared by the authors in \cite{lawhern2016eegnet}. 
+    
+    \Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt)[width=1\linewidth]{figures/nn2}
+    {The architecture of $\text{ConvNet}_{\text{opt}}$ for decoding event-related synchronization and desynchronization in EEG signals for motor imagery BCIs.\label{fig:figerders}}
+    
+
+    \begin{table}
+        \centering 
+        \caption{The EEGNet model architecture used for decoding subject-specific EEG data.}
+        \label{tab:EEGNet}
+        \begin{tabular}{ll}
+            \toprule
+            \textbf{Index} &       \textbf{Layers} \\
+            \midrule
+            1  &           EEG Input \\
+            2  &           Conv2d (Temporal) \\
+            3  &           BatchNorm2d \\
+            \midrule 
+            4  &           Conv2d (Spatial) \\
+            5  &           BatchNorm2d \\
+            6  &           ELU Activation \\
+            \midrule
+            7  &             AvgPool2d \\
+            8  &               Dropout \\
+            \midrule
+            9  &                Conv2d (sep\_depth) \\
+            10 &                Conv2d (sep\_point)\\
+            11 &           BatchNorm2d \\
+            12 &        ELU Activation \\
+            \midrule
+            13 &             AvgPool2d \\
+            14 &               Dropout \\
+            \midrule
+            15 &             Conv2d (Classifier) \\
+            16 &            Linear   \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+    
+    
+    \begin{table}[H] 
+        \centering    
+        \caption{Total number of observations for each pooled data sets collected as part of the Training and Validation.} 
+        \begin{tabular}{l|c|cc}
+            \toprule
+            \textbf{\textbf{Data Type}} & \textbf{Number of Subjects} & \textbf{Training Set} &  \textbf{Validation Set} \\
+            \midrule
+            \textbf{WEIBO2014} &  10 & 1264 &  316  \\
+            \midrule
+            \textbf{PhysioNet}  & 109 & 3713 &  928 \\
+            \midrule
+            \textbf{BCI Data-2a} & 9 & 2074 &  518  \\
+            \midrule        
+            \textbf{BCI Data-2b} & 9 & 5217 &  1303 \\
+            \bottomrule                  
+        \end{tabular}
+        \label{tab:dataset}    
+    \end{table}
+    
+    
+\section{Training and Model Selection}
+ \label{modelselect}
+    
+%    Fig. \ref{fig:ERDS} presents an example of event-related synchronization and desynchronization (ERDS) feature maps constructed on the left-hand and right-hand motor imagery tasks (selected channels C3, Cz, and C4) from to Physionet dataset, Subject \#1. These ERDS maps were obtained using a Morlet wavelet decomposition, and followed by a spatiotemporal clustering technique to mask significant (p $<$ 0.05) ERDS maps across time-frequency space. A central task here is to train a model that captures latent discriminative spatial and temporal or joint spatiotemporal ERDS maps for robust decoding of mental intent from raw EEG. This task is different as compared to traditional ERDS processing methods that require careful manual feature engineering of ERDS and training a separate classifier for decoding. 
+    
+Due to the physical and mental burden on human subjects in motor imagery experiments, it is generally challenging to collect a large sample for each subject. Generally, a limited number of EEG training observations can be acquired in one experimental session, which itself usually lasts an hour. Such an experiment should be repeated over weeks and months to collect a large sample, which is generally required to train deep neural networks. Table \ref{tab:dataset} shows the total number of observations (i.e.,  signal segments of 4000 ms; as described in Sections \ref{sec:matmethods} and \ref{preprocessing}) that were used in training and validation sets (used for model selection described next in this section) across both right-hand and left-hand motor imagery classes for all datasets used in our study (see Section \ref{sec:matmethods} for description of these datasets).  {For each dataset, we pooled the observations collected for all subjects within the dataset, 80\% of this pooled sample was randomly set aside for training, and the rest was left for model selection. In order to increase the sample size, one may segment the collected waveforms to a series of shorter time intervals \cite{schirrmeister2017deep, Kay2013}}. In this regard, we generated multiple training observations by subsampling the original complete trial with a fixed time window of length $t = 1500$ ms with $50\%$ overlap along the time axis. Subsequently, we trained ConvNets on multiple time-window segments obtained from the completed trials. 
+    
+    
+%    \subsubsection{Model selection}
+    % {In the first stage, the process of model selection (tuning hyperparameters) is conducted on the validation set that was set aside within each dataset. The outcome of this stage leads to a {single} structure that will be highly accurate once trained for each subject within that dataset,  the structure is still specific to the dataset and,  therefore,  specific to the technical variability associated with the dataset. In the second stage and in an effort to lessen the effect of dataset-specific technical variability on the selected structure,  we identify a single structure,  namely,  P3Net,  that exhibits the best average performance among all datasets. In this study, we use a systematic two-stage model selection. We define a limited space of hyperparameters (both structural and algorithmic), which is restricted by our computational power. In the first stage, the process of model selection includes training ConvNets and recording their accuracies on both validation sets at the epoch that leads to the highest accuracy on the validation set for all combinations of hyperparameters within our predetermined space. The final selected architecture is the one that leads to the highest average accuracy across all training datasets.}  {In order to maximize the number of subjects that are used in the model selection stage, we use three datasets with the highest number of subjects for model selection (Physionet, Weibo2014, and BCI-DataSet2A) and set aside BCI-DataSet2B for testing---BCI-DataSet2A and BCI-DataSet2B have the same number of subjects and the assignment was done arbitrary. }
+    
+    %The model selection strategy used here is not, of course, the only way to conduct a systematic model selection; for example, various other performance metrics or network pruning techniques could be used. One may even define a much larger hyperparameter space with some suboptimal search strategies (as opposed to the exhaustive search used here).  
+    
+    The following assumptions were made to define the possible search space of hyperparameters: (i) the maximum number of examined epochs for all models was set to 150 (no early stopping); (ii) the mini-batch gradient descent (batch size of 64) with Adam optimizer with a learning rate of 0.001 and a decay of 0.0001  was examined \cite{KingmaB14}; (iii) the loss function was cross-entropy \cite{Goodfellow}; (iv) the maximum number of convolutional layers that were examined was 6 with a single fully connected layer; (v) a dropout layer with the retention probability of $p = 0.5$ was used prior to the fully connected layer \cite{Srivastava:2014};
+    (vi)  {assuming $h_{\mathbf{K}, j}$ and $w_{\mathbf{K}, j}$ denote the height and the width of the kernel used in layer $j$, respectively, where $j=1,...,L$ with $L$ being the total number of layers used in the architecture ($2\leq L \leq 6$), in training ConvNets, we used a common rectangular shape kernel for all layers such that $h_{\mathbf{K}, j}=h_{\mathbf{K}}= 3, \forall j$, and $w_{\mathbf{K}, j} = w_{\mathbf{K}} = 8 \,*\tau$, $\forall j$ where $\tau \in [1, 3, 5]$ was introduced to define convolutional filters that cover different temporal features of EEG \footnote{Given $fs = 80$ Hz sampling rate, the temporal window of $t = 100$ ms would be covered by a kernel width of $w_{\mathbf{K}} = 8$, and $t = 300$ ms, $t = 500$ ms are covered by kernel widths of $w_{\mathbf{K}} = 24$, $w_{\mathbf{K}} = 40$, respectively};  and (vii) assuming $c_{\mathbf{Y}, j}$ denotes the number of output channels in layer $j$, we considered both an increasing and decreasing pattern for $c_{\mathbf{Y}, j}$ with $c_{\mathbf{Y}, j}=2^{2+j}$ and $c_{\mathbf{Y}, j}=2^{L+3-j}$. 
+    
+    {The above set of assumptions sets the cardinality of hyperparameter space to 4500 = 150 (epoch) $\times$ 10 (patterns of $c_{\mathbf{Y}, j}$) $\times$ 3 (possible values of $w_{\mathbf{K}}$)---the latter two hyperparameters define 30 possible ConvNet architectures.} In addition, all ConvNets are based on a stack of standard convolutional layers; that is to say, each layer includes a convolutional operation (Section \ref{ConvNetsec}),  batch normalization,  the rectified linear unit activation function,  and the max-pooling operation.  {Using the defined hyperparameter space, we deployed a two-stage systematic model selection. 
+    
+    In the first stage, we used the validation set within each dataset to estimate the optimal set of algorithmic hyperparameters within the defined hyperparameter space (here, the epoch size only) given all structural hyperparameters fixed. In this regard, for each dataset and each combination of structural hyperparameters, we trained a ConvNet and recorded its accuracy at the epoch size that led to the highest accuracy on the validation set within that dataset. In the second stage, the optimal combination of structural hyperparameters was estimated as the one that led to the highest average accuracy across all datasets used for model selection.}  In order to maximize the number of subjects that were used in the model selection stage, we used three datasets with the highest number of subjects for model selection (Physionet, Weibo2014, and BCI-DataSet2A) and set aside BCI-DataSet2B for testing---BCI-DataSet2A and BCI-DataSet2B have the same number of subjects and the assignment was done arbitrary.  All this process was conducted using a Linux workstation with Intel Core i9-9900K, (3.6 GHz) processor,  32 GB of RAM, and Nvidia GeForce RTX 2080 Ti (RAM = 11GB,  CUDA Cores: 4352). The entire workflow was implemented in Pytorch deep learning environment.
+    
+\begin{table*}[htb]  
+	\centering\ra{1.2}
+	\caption{Training and Validation Accuracies (in percentage) of ConvNet models for pooled sample on three different datasets indicated by Physionet, BCI Competition VI - Dataset 2a (BCI-DataSet2A) and Weibo-2014. The best model in terms of achieving the highest average accuracy on the train and validation sets are shown in bold.} 
+	\label{tab:valPool_acc}
+	\setlength{\tabcolsep}{8pt} 
+	
+	\begin{tabular}{|l|cc|cc|cc|cc|}
+
+		\toprule
+		\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{ConvNet Architectures}}} & \multicolumn{2}{c|}{\textbf{PhysioNet}} & \multicolumn{2}{c|}{\textbf{BCI-DataSet2A}} & \multicolumn{2}{c|}{\textbf{Weibo-2014}} & \multicolumn{2}{c|}{\textbf{Average}} \\ %\cline{2-9} 
+		\multicolumn{1}{|l|}{}   
+		
+		&  \textbf{Train Acc} &  \textbf{Val Acc} &  \textbf{Train Acc} &  \textbf{Val Acc} &      \textbf{Train Acc} &     \textbf{Val Acc} &    \textbf{Train Acc} &   \textbf{Val Acc} \\
+		\midrule
+		C[16, 8]\_K(3 $\times$ 8)                    &      73.20 &       71.77 &        99.95 &         73.02 &      96.42 &      60.47 &      89.85 &      68.42 \\
+		C[16, 8]\_K(3 $\times$ 24)                   &      96.94 &       72.56 &        93.40 &         70.99 &     100 &         62.79 &      96.78 &      68.78 \\
+		C[16, 8]\_K(3 $\times$ 40)                   &      94.58 &       73.02 &        95.84 &         67.14 &      81.75 &      63.79 &      90.72 &      67.98 \\
+		C[32, 16, 8]\_K(3 $\times$ 8)                &      86.78 &       75.28 &       100 &            71.20 &      96.08 &      64.78 &      94.29 &      70.42 \\
+		C[32, 16, 8]\_K(3 $\times$ 24)               &      75.30 &       74.72 &        72.07 &         72.21 &      98.83 &      70.43 &      82.07 &      72.45 \\
+		C[32, 16, 8]\_K(3 $\times$ 40)               &      96.43 &       74.94 &        98.37 &         72.21 &      97.58 &      69.10 &      97.46 &      72.09 \\
+		C[64, 32, 16, 8]\_K(3 $\times$ 8)            &      80.71 &       74.83 &       100 &            75.25 &     100 &         70.76 &      93.57 &      73.62 \\
+		C[64, 32, 16, 8]\_K(3 $\times$ 24)           &      87.92 &       75.51 &       100 &            74.44 &      96.92 &      72.09 &      94.94 &      74.02 \\
+		C[64, 32, 16, 8]\_K(3 $\times$ 40)           &      82.61 &       76.19 &       100 &            72.41 &      98.58 &      69.44 &      93.73 &      72.68 \\
+		\textbf{C[128, 64, 32, 16, 8]\_K(3 $\times$ 8)}  &  99.49 &       76.76 &       100 &    \textbf{75.66} &     99.92 &      71.43 &      \textbf{99.80} &      \textbf{74.62} \\
+		C[128, 64, 32, 16, 8]\_K(3 $\times$ 24)      &      97.50 &       76.30 &        97.97 &         75.05 &      97.83 &      67.44 &      97.77 &      72.93 \\
+		C[128, 64, 32, 16, 8]\_K(3 $\times$ 40)      &      82.87 &       76.08 &       100 &            74.65 &      97.67 &      70.10 &      93.51 &      73.61 \\
+		C[256, 128, 64, 32, 16, 8]\_K(3 $\times$ 8)  &      80.88 &       73.81 &        86.74 &         71.40 &      67.47 &      66.89 &      78.37 &      70.70 \\
+		C[256, 128, 64, 32, 16, 8]\_K(3 $\times$ 24) &      82.50 &       74.49 &        98.58 &         75.46 &      82.83 &      65.01 &      87.97 &      71.65 \\
+		C[256, 128, 64, 32, 16, 8]\_K(3 $\times$ 40) &      78.70 &       75.74 &       100 &            72.41 &      84.53 &      64.78 &      87.74 &      70.98 \\
+		\midrule\midrule  
+		C[8, 16]\_K(3 $\times$ 8)                    &      75.07 &       71.54 &       100 &         69.37 &      82.08 &         60.13 &      85.72 &      67.02 \\
+		C[8, 16]\_K(3 $\times$ 24)                   &      87.44 &       72.68 &        97.61 &         73.63 &      98.58 &      63.12 &      94.54 &      69.81 \\
+		C[8, 16]\_K(3 $\times$ 40)                   &      87.52 &       73.47 &        98.78 &         67.75 &      75.50 &      62.13 &      87.27 &      67.78 \\
+		C[8, 16, 32]\_K(3 $\times$ 8)                &      75.38 &       73.70 &        98.22 &         74.65 &      96.75 &      62.13 &      90.12 &      70.16 \\
+		C[8, 16, 32]\_K(3 $\times$ 24)               &      76.40 &       73.47 &        73.54 &         73.43 &      98.17 &      66.78 &      82.70 &      71.22 \\
+		C[8, 16, 32]\_K(3 $\times$ 40)               &      78.45 &       74.15 &        83.09 &         73.83 &      92.08 &      65.45 &      84.54 &      71.14 \\
+		C[8, 16, 32, 64]\_K(3 $\times$ 8)            &      77.60 &       74.38 &        98.63 &         74.04 &      96.17 &      67.44 &      90.80 &      71.95 \\
+		C[8, 16, 32, 64]\_K(3 $\times$ 24)           &      94.95 &       75.40 &        77.86 &         71.60 &     100 &  \textbf{74.75} &      90.94 &      73.92 \\
+		C[8, 16, 32, 64]\_K(3 $\times$ 40)           &      75.58 & \textbf{77.21} &     95.33 &         71.81 &      89.08 &      64.78 &      86.66 &      71.27 \\
+		C[8, 16, 32, 64, 128]\_K(3 $\times$ 8)       &      79.78 &       75.85 &        96.14 &         72.82 &     100 &         69.44 &      91.97 &      72.70 \\
+		C[8, 16, 32, 64, 128]\_K(3 $\times$ 24)      &      81.28 &       75.96 &       100 &            72.41 &      79.00 &      67.77 &      86.76 &      72.05 \\
+		C[8, 16, 32, 64, 128]\_K(3 $\times$ 40)      &      93.62 &       75.96 &        97.00 &         66.73 &      99.17 &      70.76 &      96.60 &      71.15 \\
+		C[8, 16, 32, 64, 128, 256]\_K(3 $\times$ 8)  &      80.37 &       73.70 &        97.60 &         66.19 &      98.83 &      63.34 &      92.27 &      67.74 \\
+		C[8, 16, 32, 64, 128, 256]\_K(3 $\times$ 24) &      75.50 &       73.92 &        66.43 &         66.33 &      65.81 &      62.68 &      69.24 &      67.64 \\
+		C[8, 16, 32, 64, 128, 256]\_K(3 $\times$ 40) &      81.76 &       73.92 &        67.19 &         64.71 &      69.14 &      64.45 &      72.70 &      67.69 \\
+		\bottomrule
+	\end{tabular}
+\end{table*}    
+    \section{Results} 
+    \label{sec:results}
+    
+    In this section, we present the results of the systematic model selection described in Section \ref{modelselect}. Table \ref{tab:valPool_acc} shows the classification accuracies achieved at the epoch that led to the highest accuracy on the validation set within each dataset used for model selection (Physionet, Weibo2014, and BCI-DataSet2A)---this was the first stage of model selection as described in Section \ref{modelselect}. In this table, ${\text{C}}[c_{\mathbf{Y}, 1}, ..., c_{\mathbf{Y}, L}]$ and $\mathbf{\mathbf{K}}(h_{\mathbf{K}} \times w_{\mathbf{K}})$ are used to represent the number of output channels in each layer and the rectangular shape of the kernels that was in common across all layers, respectively. The rightmost column in this table is used to estimate the optimal combination of structural hyperparameters within the defined hyperparameter space (i.e., the second stage of the model selection). The ConvNet structure that led to the highest average accuracy across all three datasets used in model selection is identified in bold in the first column. Hereafter, we refer to this structure (C[128, 64, 32, 16, 8]\_K(3 $\times$ 8)) as $\text{ConvNet}_{\text{opt}}$. Fig. \ref{fig:figerders} shows a schematic representation of $\text{ConvNet}_{\text{opt}}$ architecture.
+    
+    Having estimated the structural hyperparameters, we now compare the performance of $\text{ConvNet}_{\text{opt}}$ with the EEGNet on a set of subjects within a dataset that was entirely unseen during the model selection (i.e., BCI-DataSet2B). Note that the aforementioned model selection led to a fixed set of structural hyperparameters (i.e., the structure of $\text{ConvNet}_{\text{opt}}$), but the algorithmic hyperparameter (here, the epoch size) is left undetermined. Although using a similar strategy we could have estimated all hyperparameters including the epoch size, we left it to retraining process of $\text{ConvNet}_{\text{opt}}$ on each new data to estimate the optimal epoch size (similar to EEGNet in which we only use the structure and for each new dataset, the weights and the epoch size are estimated). As a result, to compare the performance of $\text{ConvNet}_{\text{opt}}$ and EEGNet on BCI-DataSet2B, we first randomly split the observations for each subject to training ($70\%$), validation ($15\%$), and test ($15\%$) sets  and use the validation set to estimate the optimal epoch size for each model. 
+    
+    Tables \ref{EEGT} and \ref{CONVT} show the subject-specific classification accuracy achieved using the EEGNet and the $\text{ConvNet}_{\text{opt}}$ on training, validation, and test sets for each subject within BCI-DataSet2B. Of particular importance in these tables is the classification accuracies achieved on the test data for each subject. Fig. \ref{fig:ConvNet_vs_EEGNet} shows a subject-specific comparison between these accuracies. As seen in this figure, there is not a significant difference between the classification accuracies achieved by $\text{ConvNet}_{\text{opt}}$ and EEGNet---a two-sided Wilcoxon rank sum test does not reject the null hypothesis of having difference between these two sets of accuracies ($p=0.51$). In other words, the classification accuracies achieved by $\text{ConvNet}_{\text{opt}}$ and EEGNet are comparable on BCI-DataSet2B. 
+ 
+    \textcolor{red}{Fig. \ref{fig:train_time} shows the training time performance of the selected  $\text{ConvNet}_{\text{opt}}$ architecture on four pooled datasets. We note thta the longer training time were associated with the size of the dataset (see Table \ref{tab:dataset}). For instance, the BCI-DataSet2B took 5352 seconds, which is the longest duration among other datasets, elapsed to complete the training of the model.}
+     
+    
+    \begin{table}[htb]  
+        \centering\ra{1.1}
+        \caption{EEGNet subject-specific performance on the independent BCI Competition VI - Dataset 2b dataset (BCI-DataSet2B) that has not been used in model selection.} 
+        \label{EEGNetsubspe}
+        \setlength{\tabcolsep}{10pt}
+        \begin{tabular}{l|ccc|c}
+            \toprule
+            \textbf{Subjects} &  \textbf{Train Acc} &    \textbf{Val Acc} &   \textbf{Test Acc} &      \textbf{Epoch} \\
+            \midrule
+            Subject: 1 &      73.17 &      71.54 &      75.00 &      96 \\
+            Subject: 2 &      69.53 &      64.23 &      64.71 &     104 \\
+            Subject: 3 &      52.32 &      62.31 &      68.06 &      12 \\
+            Subject: 4 &      96.24 &      97.76 &      93.24 &      23 \\
+            Subject: 5 &      86.28 &      93.28 &      86.49 &      59 \\
+            Subject: 6 &      88.61 &      83.08 &      80.56 &     109 \\
+            Subject: 7 &      86.29 &      85.38 &      84.72 &      55 \\
+            Subject: 8 &      87.57 &      85.40 &      84.21 &      51 \\
+            Subject: 9 &      89.38 &      82.31 &      77.78 &      97 \\
+            \midrule
+            \textbf{Average}    &      81.04 &      80.59 &      79.42 &      \\
+            \bottomrule
+        \end{tabular}
+        \label{EEGT}
+    \end{table}
+    
+    \begin{table}[htb]  
+        \centering\ra{1.1}
+        \caption{$\text{ConvNet}_{\text{opt}}$ (C[128, 64, 32, 16, 8]\_K(3 $\times$ 8)) subject-specific performance on the independent BCI Competition VI - Dataset 2b dataset (BCI-DataSet2B) that has not been used in model selection.} 
+        \label{ConvNetbestsubspe}
+        \setlength{\tabcolsep}{10pt}
+        \begin{tabular}{l|ccc|c}
+            \toprule
+            \textbf{Subjects} &  \textbf{Train Acc} &    \textbf{Val Acc}&   \textbf{Test Acc} &      \textbf{Epoch} \\
+            \midrule
+            Subject: 1 &      99.63 &      83.94 &      80.56 &      99 \\
+            Subject: 2 &      86.63 &      59.23 &      47.06 &     127 \\
+            Subject: 3 &      73.86 &      61.31 &      61.11 &     133 \\
+            Subject: 4 &      100 &        98.58 &      91.89 &     143 \\
+            Subject: 5 &      100 &        93.62 &      89.19 &     140 \\
+            Subject: 6 &      87.02 &      88.32 &      88.89 &      95 \\
+            Subject: 7 &      80.44 &      85.40 &      86.11 &      94 \\
+            Subject: 8 &      83.54 &      88.28 &      81.58 &     105 \\
+            Subject: 9 &      81.90 &      90.51 &      88.89 &      99 \\
+            \midrule
+            \textbf{Average}    &      88.11 &      83.24 &      79.47 &      ~ \\
+            \bottomrule
+        \end{tabular}
+        \label{CONVT}
+    \end{table}
+    
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt)[width=1.0\linewidth]{figures/boxplotNew2}
+{Classification accuracy ($\%$) of EEGNet and $\text{ConvNet}_{\text{opt}}$ achieved on test data that was set aside for each subject within BCI-DataSet2B. The left pane shows the boxplot for the model performances on nine subjects where each star represents the subject-specific accuracy. The right pane shows pairwise comparison between EEGNet and $\text{ConvNet}_{\text{opt}}$ for each subject as well as the average accuracy obtained across all subjects. \label{fig:ConvNet_vs_EEGNet}}
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt)[width=0.999\linewidth]{figures/barp}
+{Training time performance of $\text{ConvNet}_{\text{opt}}$ on four different pooled datasets obtained from entire 150 epochs using Intel Core i9-9900K (3.6 GHz) PC with processor, 32 GB of RAM, and Nvidia GeForce RTX 2080 Ti (RAM = 11GB,  CUDA Cores: 4352) \label{fig:train_time}}
+
+   
+\section{Discussion}
+\label{sec:discussion}
+{\textcolor{blue}{Deep learning technologies has offered unprecedented opportunities to construct remarkably accurate classifiers by integrating the process of feature extraction into the classifier training. However, this integration process comes at the price of tuning a large number of (algorithmic and structural) hyperparameters. This has partially led many studies to rely on existing well-known architectures such as AlexNet or ResNet, use the domain knowledge to construct the final architecture, or have an unclear \textit{ad hoc} strategy deployed for model selection. This raises the question as to whether training accurate deep learning models using a principled model selection is possible, or, alternatively, experience and developing high intuition regarding the collected BCI data is the most prudent way to go about tuning the hyperparameters. }
+    
+    To address this question, in this work we sought to show the efficacy of using standard convolutional neural networks within a systematic model selection for classification of sensorimotor rhythms that arise during motor imagery tasks. In this regard, we used a two-stage systematic model selection. In the first stage, the validation set within each dataset was used to estimate the optimal set of algorithmic hyperparameters within the defined hyperparameter space given all structural hyperparameters fixed. The validation set used in this stage was a portion of observations that were randomly set aside from the pooled sample of subjects within each dataset---pooled design \textit{per se} is a feasible solution for reducing the extensive calibration time of BCI systems for individual subjects \cite{Lotte2015}. In the second stage, the optimal combination of structural hyperparameters was estimated as the one that led to the highest average accuracy across all datasets used for model selection.} 
+    
+    {The aforementioned model selection led to a fixed set of structural hyperparameters, but the only variable algorithmic hyperparameter (i.e., the epoch size) was left free and is estimated in the training process of the selected architecture on new data (similar to training the EEGNet architecture, which was used as the benchmark for comparison). Training the EEGNet and the $\text{ConvNet}_{\text{opt}}$ architectures for nine additional subjects from BCI-DataSet2B that was entirely unseen during the model selection led to a set of (statistically) comparable accuracies with EEGNet. Going back to the main question of this study, this observation shows the possibility of using standard CNNs within a systematic brute-force model selection to achieve comparable classification accuracy as the state-of-the-art deep learning architectures used in the classification of motor imagery tasks. }
+    
+    \textcolor{blue}{In other words, our study is a comparison between the use of prior knowledge versus data in the context of model selection. Naturally, if  \quotes{good} prior knowledge about the nature of data and a mechanism for encoding this knowledge into the structure of a classification rule are available, we may expect training highly accurate predictive models; however, in the absence of such prior knowledge, we may look into conducting a data-driven brute-force model selection as a viable option. Nevertheless, the performance of the selected structure, which is the outcome of this brute-force model selection, depends on the pre-specified space of hyperparameters. Here, we showed that in so far as classification of sensorimotor rhythms is concerned, a pre-specified space that was restricted by our computing power and defined based on common values of hyperparameters can lead to accurate classifiers.} 
+    
+    {The systematic model selection strategy used here is not, of course, the only way to go about estimating the hyperparameters; for example, various other performance metrics or network pruning techniques could be used. Depending on computing power capacity, one may even define a much larger hyperparameter space or may use some suboptimal search strategies (as opposed to the exhaustive search used here). Furthermore, one may estimate both the algorithmic and structural hyperparameters in model selection. Nonetheless, we believe that the results obtained here would suffice to verify the efficacy of conducting a brute-force CNN model selection within a limited hyperparameter space.}
+   
+    
+    \section{Conclusion}
+    \label{sec:conclusion}
+    In this work, we examined whether a brute-force search with a limited space of hyperparameters for standard convolutional neural networks (CNNs) would possibly lead to a comparable classification accuracy as the state-of-the-art deep learning architectures for classification of motor imagery tasks. In this regard, we conducted the first large-scale analysis in which we use EEG data collected from 128 subjects across three different datasets to determine the single architecture that achieved the highest average accuracy on pooled-sample validation sets across these datasets. Retraining the identified architecture on a set of 9 additional subjects within another dataset that was entirely unseen during the model selection stage led to a comparable set of classification accuracies as the EEGNet. This result of our investigation does not undermine the capacity and efficacy of the EEGNet, which was used as the benchmark for comparison. The EEGNet has shown the state-of-the-art performance in various EEG classification tasks across various BCI paradigms; however, its structure is partially inspired by the domain knowledge, which is, of course, not possessed by non-experts. We believe though our finding about the efficacy of the systematic CNN model selection in the classification of motor imagery tasks may open up doors to the machine learning community and deep learning practitioners with a minimal domain knowledge to propose powerful BCI models. 
+           
+    \bibliographystyle{IEEEtran}
+    \bibliography{reference}  
+    
+%        \begin{IEEEbiography}[{\includegraphics[width=1in, height=1.25in, clip, keepaspectratio]{berdakh2018.jpeg}}]%
+%    	{Berdakh Abibullaev} (M' 12) received his M.Sc. and Ph.D. degrees in electronic engineering from Yeungnam University, South Korea in 2006, and 2010,  respectively. He held research scientist positions at Daegu-Gyeongbuk Institute of Science and Technology (2010-2013) and at Samsung Medical Center,  Seoul,  South Korea (2013-2014). In 2014, he received the National Institute of Health postdoctoral research fellowship II to join a multi-institutional research project between the University of Houston Brain-Machine Interface Systems Team and Texas Medical Center in developing neural interfaces for rehabilitation in post-stroke patients. He is currently an Assistant Professor at Robotics Department, Nazarbayev University,  Kazakhstan. His research focuses on developing robust  Brain-Computer/Machine Interfaces for people with severe motor impairments. He is as an associate editor in IEEE Access since 2016. 
+%    \end{IEEEbiography}
+%
+%    \begin{IEEEbiography}[{\includegraphics[width=1in, height=1.25in, clip, keepaspectratio]{Irina_black.png}}]%
+%    	{Irina Dolzhikova}  received her Bachelor's  with Honors degree (2016) and Master's degree (2018) in Electrical and Electronic Engineering from the Nazarbayev University, Kazakhstan. She was teaching assistant at Nazarbayev University between 2017-2018. She is currently pursuing a Ph.D. degree in the area of machine learning with the focus on the EEG-based Brain-Computer Interfaces.
+%    	
+%    	
+%    \end{IEEEbiography}
+%
+%    \begin{IEEEbiography}[{\includegraphics[width=1in, height=1.25in, clip, keepaspectratio]{amin1b.png}}]%
+%    	{Amin Zollanvari} (M' 10,  SM' 19) received B.Sc. and M.Sc. degrees in electrical engineering from Shiraz University,  Iran,  and Ph.D. degree in electrical engineering from Texas A\&M University,  College Station TX,  in 2010. He held a postdoctoral position at Harvard Medical School and Brigham and Women's Hospital,  Boston MA (2010-2012), and then joined the Department of Statistics at Texas A\&M University as an Assistant Research Scientist (2012-2014). He is currently an Assistant Professor in the Department of Electrical and Computer Engineering at Nazarbayev University, Kazakhstan. His research interests include machine learning,  statistical signal processing,  and biomedical informatics.
+%    \end{IEEEbiography}
+    
+\EOD    
+    
+\end{document}
