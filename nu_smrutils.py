@@ -21,7 +21,6 @@ def loaddat(filename):
     return data
 
 ###############
-
 def get_data_loaders(dat, batch_size, EEGNET = None):    
     # convert data dimensions to into to gray scale image format
     if EEGNET: ### EEGNet model requires the last dimension to be 1 
@@ -91,7 +90,6 @@ class SKStandardScaler(TransformerMixin):
             X = X.reshape(-1, *self._orig_shape)
         return X
 ###############
-
 
 def load_pooled(data, subjectIndex, class_name,
                 normalize=True, test_size=0.15):
@@ -243,8 +241,6 @@ def subject_specific(data, subjectIndex, class_name,
     return datx
 
 ###############
-
-
 def augment_dataset(X, Y, std_dev, multiple):
     """
     Augments the size of the dataset by introducing unbiased gaussian noise.
@@ -314,8 +310,6 @@ if torch.cuda.is_available():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 #############################################################
-
-
 def best_epoch_labels(train_labels, best_epoch):
     """This function is used by train_model to store best epoch labels"""
     for jj in range(len(train_labels[best_epoch]['ypred'])-1):
@@ -329,7 +323,6 @@ def best_epoch_labels(train_labels, best_epoch):
     return ypred, ytrue
 
 ############################################################
-
 
 def train_model(model, dset_loaders, dset_sizes, criterion, optimizer, dev,
                 lr_scheduler=None, num_epochs=50, verbose=2, LSTM=False):
