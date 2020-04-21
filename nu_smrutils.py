@@ -1,17 +1,17 @@
 # normalization function
 import copy
 import pickle
-#############################################
 import time
-
 import numpy as np
+
 import torch
 import torch.nn as nn
+
 from sklearn.base import TransformerMixin
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
-#%%
+
 ###############
 def loaddat(filename):
     """Loads pickle file
@@ -36,8 +36,10 @@ def get_data_loaders(dat, batch_size, EEGNET = None):
     train_dat    = TensorDataset(x_train, y_train) 
     val_dat      = TensorDataset(x_valid, y_valid) 
     
-    train_loader = DataLoader(train_dat, batch_size = batch_size, shuffle = True, drop_last = True)
-    val_loader   = DataLoader(val_dat,   batch_size = batch_size, shuffle = False,drop_last = True)
+    train_loader = DataLoader(train_dat, batch_size = batch_size, 
+                              shuffle = True, drop_last = True)
+    val_loader   = DataLoader(val_dat,   batch_size = batch_size, 
+                              shuffle = False,drop_last = True)
 
     output = dict(dset_loaders = {'train': train_loader, 'val': val_loader}, 
                   dset_sizes   = {'train': len(x_train), 'val': len(x_valid)},
@@ -237,7 +239,7 @@ def subject_specific(data, subjectIndex, class_name,
 
         datx.append(dict(xtrain=X_train, xvalid=X_valid, xtest=X_test,
                          ytrain=y_train, yvalid=y_valid, ytest=y_test))
-
+        
     return datx
 
 ###############
@@ -283,7 +285,6 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
     number_splits = xdata.shape[-1]//desired_length
     tstart, tstop = 0, desired_length
 
-    # % needed to copy multiple times
     t = 3 - crop_length
     for ii in np.arange(number_splits + t):
         if ii == 0:
@@ -300,7 +301,6 @@ def crop_data(fs, crop_length, xdata, ylabel, xpercent):
             except:
                 pass
     return Xi, Yi
-
 
 ##############################################
 dev = torch.device("cpu")
