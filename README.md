@@ -22,9 +22,8 @@ For more details refer to MOABB website, where you can download these datasets.
 ----- 
 ## Dataset: 
 
-https://drive.google.com/drive/folders/1bOm8l7o0MGL6fW7-EoPPrM3Q-jVOdmSV?usp=sharing
 
-Four different datasets are provided - BCI competition that is publicly available online
+Four different datasets are used - BCI competition that is publicly available online
  
 - 'BNCI2014001R.pickle',
 - 'BNCI2014004R.pickle',
