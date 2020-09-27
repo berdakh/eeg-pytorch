@@ -91,8 +91,8 @@ class SKStandardScaler(TransformerMixin):
         if len(X.shape) >= 2:
             X = X.reshape(-1, *self._orig_shape)
         return X
-###############
 
+###############
 def load_pooled(data, subjectIndex, class_name,
                 normalize=True, test_size=0.15):
     """
