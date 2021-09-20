@@ -532,3 +532,51 @@ def train_time(model, dset_loaders, dset_sizes, criterion,
     traintime['total_time_elapsed'] = total_time_elapsed
    
     return traintime 
+
+#%%
+class CNN2D(torch.nn.Module):  
+    def __init__(self, input_size, kernel_size, conv_channels, 
+                 dense_size, dropout):         
+        super(CNN2D, self).__init__()                  
+        self.cconv   = []  
+        self.MaxPool = nn.MaxPool2d((1, 2), (1, 2))  
+        self.ReLU    = nn.ReLU()
+        self.Dropout = nn.Dropout(dropout)        
+        self.batchnorm = []                
+        # ############ batchnorm ###########
+        for jj in conv_channels:
+            self.batchnorm.append(nn.BatchNorm2d(jj, eps=0.001, momentum=0.01,
+                                                 affine=True, track_running_stats=True).cuda())     
+        ii = 0 ##### define CONV layer architecture: #####
+        for in_channels, out_channels in zip(conv_channels, conv_channels[1:]):                           
+            conv_i = torch.nn.Conv2d(in_channels = in_channels, out_channels = out_channels,
+                                     kernel_size = kernel_size[ii], #stride = (1, 2),
+                                     padding     = (kernel_size[ii][0]//2, kernel_size[ii][1]//2))            
+            self.cconv.append(conv_i)                
+            self.add_module('CNN_K{}_O{}'.format(kernel_size[ii], out_channels), conv_i)
+            ii += 1                            
+        self.flat_dim = self.get_output_dim(input_size, self.cconv)    
+        self.fc1 = torch.nn.Linear(self.flat_dim, dense_size)
+        self.fc2 = torch.nn.Linear(dense_size, 2)                
+
+    def get_output_dim(self, input_size, cconv):        
+        with torch.no_grad():
+            input = torch.ones(1,*input_size)              
+            for conv_i in cconv:                
+                input = self.MaxPool(conv_i(input))        
+                flatout = int(np.prod(input.size()[1:]))
+                print("Input shape : {} and flattened : {}".format(input.shape, flatout))
+        return flatout 
+        
+    def forward(self, input):        
+        for jj, conv_i in enumerate(self.cconv):
+            input = conv_i(input)
+            input = self.batchnorm[jj+1](input)
+            input = self.ReLU(input)        
+            input = self.MaxPool(input)                   
+        # flatten the CNN output     
+        out = input.view(-1, self.flat_dim) 
+        out = self.fc1(out)                       
+        out = self.Dropout(out)        
+        out = self.fc2(out)      
+        return out        
