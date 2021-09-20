@@ -94,7 +94,7 @@ class SKStandardScaler(TransformerMixin):
 
 ###############
 def load_pooled(data, subjectIndex, class_name,
-                normalize=True, test_size=0.15):
+                test_size=0.15):
     """
     Creates pooled data from all subject specific EEG dataset.          
 
@@ -139,11 +139,6 @@ def load_pooled(data, subjectIndex, class_name,
     X = np.concatenate([s1pos, s1neg])
     Y = np.concatenate([np.ones(s1pos.shape[0]), np.zeros(s1neg.shape[0])])
 
-    # normalization
-    if normalize:
-        scaler = SKStandardScaler()
-        X = scaler.fit_transform(X)
-
     # split the data using sklearn split function
     x_rest, x_test, y_rest, y_test =\
         train_test_split(X, Y, test_size=test_size, random_state=42,
@@ -163,7 +158,7 @@ def load_pooled(data, subjectIndex, class_name,
 
 ###############
 def subject_specific(data, subjectIndex, class_name,
-                     normalize=True, test_size=0.15):
+                      test_size=0.15):
     """
     Creates a list of subject-specific EEG data with a  
     [Xtrain, Xvalid, Xtest] from a list of MNE objects.        .          
@@ -218,10 +213,6 @@ def subject_specific(data, subjectIndex, class_name,
         X = np.concatenate([pos[ii], neg[ii]])
         Y = np.concatenate([np.ones(pos[ii].shape[0]),
                             np.zeros(neg[ii].shape[0])])
-        # % normalization
-        if normalize:
-            scaler = SKStandardScaler()
-            X = scaler.fit_transform(X)
 
         x_rest, x_test, y_rest, y_test =\
             train_test_split(X, Y, test_size=test_size,
@@ -522,8 +513,7 @@ def train_time(model, dset_loaders, dset_sizes, criterion,
             
           preds= model(inputs.to(dev))   # make the prediction 
           loss = criterion(preds, labels.type(torch.LongTensor).to(dev)) 
-            
-            
+                        
           loss.backward() # Backpropogate       
           optimizer.step()# Update the weights          
    
